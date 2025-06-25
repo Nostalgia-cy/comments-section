@@ -1,0 +1,37 @@
+# Go binary and object files
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.a
+*.out
+
+# Test binaries
+*.test
+
+# Go module cache
+/pkg/
+/vendor/
+
+# Database files (especially SQLite)
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Environment variables
+.env
