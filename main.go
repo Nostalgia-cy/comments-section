@@ -1,22 +1,20 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
-	"net/http"
-	"strconv"
-	"time" // 引入 time 包
-
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"encoding/json" // 处理 JSON 编码和解码
+	"log" // 日志记录
+	"net/http" // HTTP 处理
+	"strconv" // 字符串转换
+	"time"  // 时间处理
+	"gorm.io/driver/sqlite" // SQLite 驱动
+	"gorm.io/gorm" // GORM ORM 库
 )
 
-// Comment 结构体定义了评论的数据模型
+// Comment 结构体定义了评论的数据模型，包含用户信息和评论内容， GORM会根据这个结构体自动创建数据库表，并且进行数据映射
 type Comment struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	UserName  string    `json:"userName"`
 	Content   string    `json:"content"`
-	// === 核心修复：将 CreatedAt 类型从 gorm.DeletedAt 修改为 time.Time ===
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"` // 自动创建时间，更符合前端预期
 }
 
@@ -27,9 +25,12 @@ type APIResponse struct {
 	Data interface{} `json:"data"` // 返回数据
 }
 
-var db *gorm.DB
+var db *gorm.DB // 数据库连接变量
 
+// 主函数
 func main() {
+    // 初始化日志记录
+    log.SetFlags(log.LstdFlags | log.Lshortfile) // 设置日志格式，包含时间和文件信息
 	var err error
 	db, err = gorm.Open(sqlite.Open("comments.db"), &gorm.Config{})
 	if err != nil {
@@ -39,11 +40,12 @@ func main() {
 	db.AutoMigrate(&Comment{}) // GORM 会根据 Comment 结构体自动创建/更新表
 	log.Println("数据库连接成功并已执行迁移。")
 
-	// === 修改路由：匹配新的 URL 和方法 ===
+    // 设置 CORS 预检请求的处理 与前端中定义的URL一致
 	http.HandleFunc("/comment/get", getCommentsHandler)   // 获取评论的 URL
 	http.HandleFunc("/comment/add", addCommentHandler)    // 假设添加评论的 URL
 	http.HandleFunc("/comment/delete", deleteCommentHandler) // 假设删除评论的 URL
 
+    // 启动 HTTP 服务器
 	port := ":8080"
 	log.Printf("服务器正在端口 %s 上监听...\n", port)
 	log.Fatal(http.ListenAndServe(port, nil))
@@ -114,7 +116,7 @@ func getCommentsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
-// addCommentHandler 封装统一响应格式
+// 添加评论 addCommentHandler 封装统一响应格式
 func addCommentHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     if r.Method == http.MethodOptions { // 处理 CORS 预检请求
@@ -158,7 +160,7 @@ func addCommentHandler(w http.ResponseWriter, r *http.Request) {
     log.Printf("POST /comment/add: 添加评论 ID %d: %s\n", comment.ID, comment.UserName)
 }
 
-// deleteCommentHandler 封装统一响应格式
+// 删除评论 deleteCommentHandler 封装统一响应格式
 func deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     if r.Method == http.MethodOptions { // 处理 CORS 预检请求
